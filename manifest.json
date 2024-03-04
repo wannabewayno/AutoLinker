@@ -1,11 +1,11 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
-	"version": "1.0.0",
-	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
-	"isDesktopOnly": false
+  "id": "autolinker",
+  "name": "AutoLinker",
+  "version": "1.0.0",
+  "minAppVersion": "0.15.0",
+  "description": "Convert text to links as you type. Set up rules in plugin settings to match text patterns as you type convert this to it's corresponding wiki style link.",
+  "author": "Wayne Griffiths",
+  "authorUrl": "https://obsidian.md",
+  "fundingUrl": "https://obsidian.md/pricing",
+  "isDesktopOnly": false
 }
