@@ -30,15 +30,18 @@ export default class SettingsData extends EventEmitter {
 		super();
 		const DEFAULT_SETTINGS = {
 			loopbackLength: 0,
-			rules: []
+			rules: [],
+			activeRules: [],
 		}
 
-		const { rules } = data;
-
+		const { rules = [] } = data || {};
+		// Assign defaults and load data onto this instance.
 		Object.assign(this, DEFAULT_SETTINGS, { rules });
+
+		// Process the rules on load.
 		this.processUserRules();
 
-		// Whenever any data changes re-process user rules and set activeRules.
+		// Whenever any data changes re-process user rules
 		this.on('change', Debouncer(() => this.processUserRules()));
 	}
 
