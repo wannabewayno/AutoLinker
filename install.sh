@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # Check if the vault path is provided
 if [ "$#" -ne 1 ]; then
@@ -16,6 +16,7 @@ bun run build
 
 # Copy the necessary files
 echo "Deploying the plugin to the vault..."
+
 mkdir -p $PluginDir
 cp main.js $PluginDir
 cp styles.css $PluginDir
