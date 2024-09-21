@@ -60,4 +60,8 @@ export default class Settings extends PluginSettingTab {
 	getLoopbackLength() {
 		return this.data.getLoopbackLength();
 	}
+
+	ruleUsed(ruleId: number) {
+		this.data.usedRule(ruleId);
+	}
 }

@@ -1,6 +1,10 @@
 import { EventEmitter } from 'stream';
 import Debouncer from 'src/utils/Debouncer';
 
+function byRuleSpecificity(a: ActiveRule, b: ActiveRule) {
+	return b[0].source.length - a[0].source.length;
+}
+
 /*
 	Matching Sean should replace "Sean" with "[[Sean Smith|Sean]]"
 	This is most likely just two rules. 
@@ -10,9 +14,13 @@ type UserRule = {
 	matchingText: string[],
 	replacementText: string,
 	activated: boolean,
+	lastUsed?: string,
+	usage: number,
 };
 type UserRules = UserRule[];
-type ActiveRule = [RegExp, string]
+
+// i.e the regex to match (the rule), the string to replace the matching text with (the replacement), id (currently the index) of the original rule
+type ActiveRule = [RegExp, string, number]
 type ActiveRules = ActiveRule[]
 
 /**
@@ -49,7 +57,7 @@ export default class SettingsData extends EventEmitter {
 	 * Adds a new rule with placeholders
 	 */
 	addRule() {
-		this.rules.push({ matchingText: [], replacementText: '', activated: true });
+		this.rules.push({ matchingText: [], replacementText: '', activated: true, usage: 0 });
 		this.emit('change');
 	}
 
@@ -99,20 +107,20 @@ export default class SettingsData extends EventEmitter {
 
 	processUserRules() {
 		let loopbackLength  = 0
-		this.activeRules = this.rules.reduce((phrases: ActiveRules, { matchingText, replacementText, activated }) => {
+		this.activeRules = this.rules.reduce((phrases: ActiveRules, { matchingText, replacementText, activated }, index) => {
 			if (!activated || !matchingText.length) return phrases;
 
       let maximumPhraseLength = 0
 			const multiPhrases = matchingText.map(text => {
         text = text.trim();
         maximumPhraseLength = Math.max(maximumPhraseLength, text.length + 3); // '3' accounts for "'s " that may be at the end
-        return [new RegExp(`\\b${text}('s)?(?=\\s{2,}|\\.)`), replacementText] as ActiveRule;
+        return [new RegExp(`\\b${text}('s)?\\b`), replacementText, index] as ActiveRule;
       });
 
 			loopbackLength = Math.max(loopbackLength, maximumPhraseLength);
 			phrases.push(...multiPhrases)
 			return phrases
-		}, []);
+		}, []).sort(byRuleSpecificity);
 		this.loopbackLength = loopbackLength;
 	}
 
@@ -148,6 +156,13 @@ export default class SettingsData extends EventEmitter {
 
 	getActiveRules() {
 		return this.activeRules;
+	}
+
+	usedRule(ruleIndex: number) {
+		const rule = this.getRule(ruleIndex);
+		if (!rule) return;
+		rule.usage++;
+		rule.lastUsed = new Date().toISOString();
 	}
 	
 	getLoopbackLength() {

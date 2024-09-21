@@ -1,7 +1,6 @@
-import type { Editor } from 'obsidian';
 import type Settings from 'src/Settings/Settings';
 import type { HasCursorMovedForward } from './HasCursorMovedForward';
-import type { GetPhraseFromParts } from './GetPhraseFromParts';
+import type { GetPhraseFromParts, MatchingScope } from './GetPhraseFromParts';
 import type { IsCursorInsideLink } from './IsCursorInsideLink';
 
 type Dependencies = {
@@ -11,7 +10,17 @@ type Dependencies = {
   isCursorInsideLink: IsCursorInsideLink,
 }
 
-export type GetActiveCharacterScope = (editor: Editor) => { scope: string, startingIndexShift: number } | null;
+interface IEditorPosition {
+  line: number,
+  ch: number,
+}
+
+interface IEditor {
+  getCursor(string?: string): IEditorPosition,
+  getLine(line: number): string,
+}
+
+export type GetActiveCharacterScope = (editor: IEditor) => { scope: string, startingIndexShift: number } | null;
 
 /**
  * 
@@ -28,7 +37,7 @@ export default ({
    * Valid text will be returned without any text inside links.
    * Only considers text N positions from the cursor that matches the longest custom rule the user has defined.
    */
-  return (editor: Editor): { scope: string, startingIndexShift: number } | null => {
+  return (editor: IEditor): MatchingScope | null => {
     const cursor = editor.getCursor();
     const didCursorMoveForward = hasCursorMovedForward(cursor);
   
@@ -42,6 +51,16 @@ export default ({
 
     const itIs = isCursorInsideLink(beforeCursor, afterCursor)
     if (itIs) return null;
+
+    /*
+      Here we test the text at the boundaries. We want to gaurd against being at the end of the line
+      We may not have finished typing yet.
+      However we may be editing inside a word, allow this as our RegEx matches as word boundary matches so it won't do
+      substring matches
+    */
+    const boundary = beforeCursor.slice(-1) + afterCursor.slice(0,1);
+    if (/^[^\s]{1}$/.test(boundary)) return null;
+
   
     return getPhraseFromParts(beforeCursor, afterCursor);
   }

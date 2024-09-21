@@ -32,13 +32,9 @@ export default ({ settings }: Dependencies) => {
         return ''
       })
 
-    let textAfterCursor = afterCursor
+    const textAfterCursor = afterCursor
       .slice(0,loopbackLength) // Get the text after the cursor incase we're in the middle of a line editing the content.
       .replace(/\[\[.*$/g,''); // Strip anything that looks like a link to quell inifinit recursion.
-
-      // ! Crucial for our matching logic. Adds a dummy whitespace characters as a buffer so we can determine if the user has finished typing a word.
-    if (!textAfterCursor.length) textAfterCursor += ' ';
-    else textAfterCursor = textAfterCursor.replace(/[^\w']/,'  ');
 
     return { scope: textBeforeCursor.concat(textAfterCursor), startingIndexShift };
   }
